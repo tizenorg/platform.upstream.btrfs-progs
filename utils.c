@@ -74,8 +74,8 @@ static u64 reference_root_table[] = {
 };
 
 int make_btrfs(int fd, const char *device, const char *label,
-	       u64 blocks[7], u64 num_bytes, u32 nodesize,
-	       u32 leafsize, u32 sectorsize, u32 stripesize)
+	       u8 fsid[BTRFS_FSID_SIZE], u64 blocks[7], u64 num_bytes,
+	       u32 nodesize, u32 leafsize, u32 sectorsize, u32 stripesize)
 {
 	struct btrfs_super_block super;
 	struct extent_buffer *buf;
@@ -103,7 +103,7 @@ int make_btrfs(int fd, const char *device, const char *label,
 	memset(&super, 0, sizeof(super));
 
 	num_bytes = (num_bytes / sectorsize) * sectorsize;
-	uuid_generate(super.fsid);
+	memcpy(super.fsid, fsid, BTRFS_FSID_SIZE);
 	uuid_generate(super.dev_item.uuid);
 	uuid_generate(chunk_tree_uuid);
 

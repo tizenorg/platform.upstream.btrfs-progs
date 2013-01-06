@@ -347,6 +347,7 @@ static void print_usage(void)
 	fprintf(stderr, "\t -M --mixed mix metadata and data together\n");
 	fprintf(stderr, "\t -n --nodesize size of btree nodes\n");
 	fprintf(stderr, "\t -s --sectorsize min block allocation\n");
+	fprintf(stderr, "\t -U --uuid FS UUID\n");
 	fprintf(stderr, "\t -r --rootdir the source directory\n");
 	fprintf(stderr, "\t -T --nodiscard do not perform whole device TRIM\n");
 	fprintf(stderr, "%s\n", BTRFS_BUILD_VERSION);
@@ -407,6 +408,7 @@ static struct option long_options[] = {
 	{ "mixed", 0, NULL, 'M' },
 	{ "nodesize", 1, NULL, 'n' },
 	{ "sectorsize", 1, NULL, 's' },
+	{ "uuid", 1, NULL, 'U' },
 	{ "data", 1, NULL, 'd' },
 	{ "version", 0, NULL, 'V' },
 	{ "rootdir", 1, NULL, 'r' },
@@ -1208,6 +1210,8 @@ int main(int ac, char **av)
 	struct btrfs_trans_handle *trans;
 	char *label = NULL;
 	char *first_file;
+	char *fsid_str = NULL;
+	u8 fsid[BTRFS_FSID_SIZE];
 	u64 block_count = 0;
 	u64 dev_block_count = 0;
 	u64 blocks[7];
@@ -1237,7 +1241,7 @@ int main(int ac, char **av)
 
 	while(1) {
 		int c;
-		c = getopt_long(ac, av, "A:b:l:n:s:m:d:L:r:VMT", long_options,
+		c = getopt_long(ac, av, "A:b:l:n:s:m:d:L:U:r:VMT", long_options,
 				&option_index);
 		if (c < 0)
 			break;
@@ -1266,6 +1270,9 @@ int main(int ac, char **av)
 				break;
 			case 's':
 				sectorsize = parse_size(optarg);
+				break;
+			case 'U':
+				fsid_str = optarg;
 				break;
 			case 'b':
 				block_count = parse_size(optarg);
@@ -1360,13 +1367,22 @@ int main(int ac, char **av)
 		}
 	}
 
+	if(fsid_str) {
+		if(uuid_parse(fsid_str, fsid) == -1) {
+			fprintf(stderr, "failed to parse UUID: %s\n", fsid_str);
+			exit(1);
+		}
+	}
+	else
+		uuid_generate(fsid);
+
 	blocks[0] = BTRFS_SUPER_INFO_OFFSET;
 	for (i = 1; i < 7; i++) {
 		blocks[i] = BTRFS_SUPER_INFO_OFFSET + 1024 * 1024 +
 			leafsize * i;
 	}
 
-	ret = make_btrfs(fd, file, label, blocks, block_count,
+	ret = make_btrfs(fd, file, label, fsid, blocks, block_count,
 			 nodesize, leafsize,
 			 sectorsize, stripesize);
 	if (ret) {

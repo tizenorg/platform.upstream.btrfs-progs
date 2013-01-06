@@ -2272,9 +2272,11 @@ err:
 	return ret;
 }
 
-int do_convert(const char *devname, int datacsum, int packing, int noxattr)
+int do_convert(const char *devname, int copy_fsid, u8 fsid[BTRFS_UUID_SIZE],
+	       int datacsum, int packing, int noxattr)
 {
 	int i, fd, ret;
+	u8 *fsid_ptr;
 	u32 blocksize;
 	u64 blocks[7];
 	u64 total_bytes;
@@ -2313,9 +2315,14 @@ int do_convert(const char *devname, int datacsum, int packing, int noxattr)
 		fprintf(stderr, "unable to open %s\n", devname);
 		goto fail;
 	}
+	if (copy_fsid) {
+		fsid_ptr = ext2_fs->super->s_uuid;
+	} else {
+		fsid_ptr = fsid;
+	}
 	ret = make_btrfs(fd, devname, ext2_fs->super->s_volume_name,
-			 blocks, total_bytes, blocksize, blocksize,
-			 blocksize, blocksize);
+			 fsid_ptr, blocks, total_bytes,
+			 blocksize, blocksize, blocksize, blocksize);
 	if (ret) {
 		fprintf(stderr, "unable to create initial ctree\n");
 		goto fail;
@@ -2752,23 +2759,28 @@ fail:
 
 static void print_usage(void)
 {
-	printf("usage: btrfs-convert [-d] [-i] [-n] [-r] device\n");
+	printf("usage: btrfs-convert [-d] [-i] [-n] [-r]"
+	       " [-U UUID | new | copy] device\n");
 	printf("\t-d disable data checksum\n");
 	printf("\t-i ignore xattrs and ACLs\n");
 	printf("\t-n disable packing of small files\n");
 	printf("\t-r roll back to ext2fs\n");
+	printf("\t-U UUID specify FS UUID\n");
+	printf("\t-U new generate random FS UUID (default)\n");
+	printf("\t-U copy copy FS UUID from ext2fs\n");
 }
 
 int main(int argc, char *argv[])
 {
-	int ret;
+	int ret, copy_fsid = 0;
 	int packing = 1;
 	int noxattr = 0;
 	int datacsum = 1;
 	int rollback = 0;
-	char *file;
+	char *file, *fsid_str = NULL;
+	u8 fsid[BTRFS_UUID_SIZE];
 	while(1) {
-		int c = getopt(argc, argv, "dinr");
+		int c = getopt(argc, argv, "dinrU:");
 		if (c < 0)
 			break;
 		switch(c) {
@@ -2783,6 +2795,9 @@ int main(int argc, char *argv[])
 				break;
 			case 'r':
 				rollback = 1;
+				break;
+			case 'U':
+				fsid_str = optarg;
 				break;
 			default:
 				print_usage();
@@ -2801,10 +2816,27 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
+	if (fsid_str) {
+		if (strcmp(fsid_str, "new") == 0) {
+			uuid_generate(fsid);
+		} else if (strcmp(fsid_str, "copy") == 0) {
+			copy_fsid = 1;
+		} else {
+			if (uuid_parse(fsid_str, fsid) == -1) {
+				fprintf(stderr, "failed to parse UUID: %s\n",
+					fsid_str);
+				return 1;
+			}
+		}
+	} else {
+		uuid_generate(fsid);
+	}
+
 	if (rollback) {
 		ret = do_rollback(file, 0);
 	} else {
-		ret = do_convert(file, datacsum, packing, noxattr);
+		ret = do_convert(file, copy_fsid, fsid, datacsum, packing,
+				 noxattr);
 	}
 	if (ret)
 		return 1;

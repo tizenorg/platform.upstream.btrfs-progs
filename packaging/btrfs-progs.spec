@@ -1,5 +1,5 @@
 Name:           btrfs-progs
-Version:        0.20~rc1
+Version:        0.20.rc1
 Release:        0
 Summary:        Utilities for the Btrfs filesystem
 Group:          Base/File Systems

@@ -1,3 +1,6 @@
+* Thu Mar 07 2013 Markus Lehtonen <markus.lehtonen@linux.intel.com> accepted/trunk/20130306.221131@7284f04
+- HACK: change version to work around mic bug
+
 * Wed Mar 06 2013 Patrick McCarty <patrick.mccarty@linux.intel.com> c46e562
 - Add packaging
 - Import version v0.20-rc1

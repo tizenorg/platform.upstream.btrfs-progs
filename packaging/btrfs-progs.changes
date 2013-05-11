@@ -1,3 +1,6 @@
+* Sat May 11 2013 Anas Nashif <anas.nashif@intel.com> submit/tizen/20130509.173159@cc20611
+- Set license using %license
+
 * Thu Mar 07 2013 Markus Lehtonen <markus.lehtonen@linux.intel.com> accepted/trunk/20130306.221131@7284f04
 - HACK: change version to work around mic bug
 

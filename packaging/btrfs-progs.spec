@@ -30,6 +30,7 @@ make install DESTDIR=%{buildroot} prefix=%{_prefix} bindir=%{_sbindir} mandir=%{
 %docs_package
 
 %files
+%license COPYING
 %{_sbindir}/btrfs
 %{_sbindir}/btrfs-convert
 %{_sbindir}/btrfs-debug-tree

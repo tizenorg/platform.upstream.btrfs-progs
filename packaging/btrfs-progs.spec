@@ -25,6 +25,7 @@ make %{?_smp_mflags}
 
 %install
 make install DESTDIR=%{buildroot} prefix=%{_prefix} bindir=%{_sbindir} mandir=%{_mandir}
+ln -s %{_sbindir}/btrfsck %{buildroot}%{_sbindir}/fsck.btrfs
 
 
 %docs_package
@@ -44,4 +45,5 @@ make install DESTDIR=%{buildroot} prefix=%{_prefix} bindir=%{_sbindir} mandir=%{
 %{_sbindir}/btrfsck
 %{_sbindir}/btrfsctl
 %{_sbindir}/btrfstune
+%{_sbindir}/fsck.btrfs
 %{_sbindir}/mkfs.btrfs

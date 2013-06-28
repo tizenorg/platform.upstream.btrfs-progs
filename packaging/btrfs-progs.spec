@@ -6,6 +6,7 @@ Group:          Base/File Systems
 License:        GPL-2.0
 Url:            http://btrfs.wiki.kernel.org/index.php/Main_Page
 Source:         %{name}-%{version}.tar.xz
+Source1001: 	btrfs-progs.manifest
 BuildRequires:  libacl-devel
 BuildRequires:  lzo-devel
 BuildRequires:  pkgconfig(ext2fs)
@@ -19,6 +20,7 @@ Utilities needed to create and maintain btrfs file systems under Linux.
 
 %prep
 %setup -q
+cp %{SOURCE1001} .
 
 %build
 make %{?_smp_mflags}
@@ -31,6 +33,7 @@ ln -s %{_sbindir}/btrfsck %{buildroot}%{_sbindir}/fsck.btrfs
 %docs_package
 
 %files
+%manifest %{name}.manifest
 %license COPYING
 %{_sbindir}/btrfs
 %{_sbindir}/btrfs-convert

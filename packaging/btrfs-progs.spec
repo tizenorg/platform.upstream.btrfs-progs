@@ -23,7 +23,7 @@ Utilities needed to create and maintain btrfs file systems under Linux.
 cp %{SOURCE1001} .
 
 %build
-make %{?_smp_mflags}
+make -j1
 
 %install
 make install DESTDIR=%{buildroot} prefix=%{_prefix} bindir=%{_sbindir} mandir=%{_mandir}
